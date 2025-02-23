@@ -15,8 +15,13 @@ function del_Tar(id) {
     return db.del_tarea(TABLA_TAR, id);
 }
 
+async function reg_Tar(data) {
+    return db.reg_tarea(TABLA_TAR, data);
+}
+
 module.exports = {
     get_allTar,
     get_Tar,
-    del_Tar
+    del_Tar,
+    reg_Tar
 }

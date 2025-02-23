@@ -136,7 +136,7 @@ function get_tarea(table, id) {
 function reg_tarea(table, data) {
     return new Promise((resolve, reject) => {
         // Verificar si el usuario existe
-        conexion.query(`SELECT * FROM ${table} WHERE id = ?`, [data.id_usuario], (error, result) => {
+        conexion.query(`SELECT * FROM usuarios WHERE id = ?`, [data.id_usuario], (error, result) => {
             if (error) {
                 return reject(error);
             }
