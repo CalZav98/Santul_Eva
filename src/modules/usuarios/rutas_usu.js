@@ -10,6 +10,7 @@ router.get('/', get_allUsu);
 router.get('/:id', get_Usu);
 router.delete('/:id', del_Usu);
 router.post('/', reg_Usu);
+router.put('/:id', up_Usu);
 
 // Consultar todos los usuarios
 async function get_allUsu (req, res) {
@@ -51,6 +52,22 @@ async function reg_Usu(req, res) {
     try {
         const resultado = await controlador.reg_Usu({ nombre, correo, contraseña });
         respuesta.success(req, res, resultado, 201);
+    } catch (err) {
+        if (err.message === 'El correo ya está registrado.') {
+            return res.status(400).send(err.message);
+        }
+        respuesta.error(req, res, err, 500);
+    }
+}
+
+// Actualizar un usuario
+async function up_Usu(req, res) {
+    const { nombre, correo, contraseña } = req.body;
+    const id = req.params.id;
+
+    try {
+        const resultado = await controlador.up_Usu(id, { nombre, correo, contraseña });
+        respuesta.success(req, res, resultado, 200);
     } catch (err) {
         if (err.message === 'El correo ya está registrado.') {
             return res.status(400).send(err.message);

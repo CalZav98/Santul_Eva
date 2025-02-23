@@ -84,7 +84,44 @@ function reg_usuario(table, data) {
     });
 }
 
+function up_usuario(table, id, data) {
+    return new Promise((resolve, reject) => {
+        // Primero, obtener el correo actual del usuario
+        conexion.query(`SELECT correo FROM ${table} WHERE id = ?`, [id], (error, result) => {
+            if (error) {
+                return reject(error);
+            }
+            if (result.length === 0) {
+                return reject(new Error('Usuario no encontrado.'));
+            }
 
+            const correoActual = result[0].correo;
+
+            // Verificar si el nuevo correo es diferente del actual
+            if (data.correo !== correoActual) {
+                // Verificar si el nuevo correo ya está registrado por otro usuario
+                conexion.query(`SELECT * FROM ${table} WHERE correo = ? AND id <> ?`, [data.correo, id], (error, result) => {
+                    if (error) {
+                        return reject(error);
+                    }
+                    if (result.length > 0) {
+                        // En caso de que el correo ya esté registrado por otro usuario
+                        return reject(new Error('El correo ya está registrado.'));
+                    }
+                });
+            }
+
+            // Si el correo es único o no ha cambiado, se procede a actualizar el usuario
+            conexion.query(`UPDATE ${table} SET nombre = ?, correo = ?, contraseña = ? WHERE id = ?`,
+                [data.nombre, data.correo, data.contraseña, id], (error, result) => {
+                    if (error) {
+                        return reject(error);
+                    }
+                    resolve(result);
+                });
+        });
+    });
+}
 
 
 
@@ -156,6 +193,29 @@ function reg_tarea(table, data) {
     });
 }
 
+function up_tarea(table, id, data) {
+    return new Promise((resolve, reject) => {
+        // Verificar si el usuario existe
+        conexion.query(`SELECT * FROM usuarios WHERE id = ?`, [data.id_usuario], (error, result) => {
+            if (error) {
+                return reject(error);
+            }
+            if (result.length === 0) {
+                return reject(new Error('Usuario no válido.'));
+            }
+
+            // Si el usuario es válido, se procede a actualizar la tarea
+            conexion.query(`UPDATE ${table} SET titulo = ?, descripcion = ?, estado = ?, id_usuario = ? WHERE id = ?`,
+                [data.titulo, data.descripcion, data.estado, data.id_usuario, id], (error, result) => {
+                    if (error) {
+                        return reject(error);
+                    }
+                    resolve(result);
+                });
+        });
+    });
+}
+
 function del_tarea(table, id) {
     return new Promise((resolve, reject) => {
         conexion.query(`DELETE FROM ${table} WHERE id = ?`, [id], (error, result) => {
@@ -176,9 +236,11 @@ module.exports = {
     reg_usuario,
     del_usuario,
     del_tar_usuario,
+    up_usuario,
 
     get_alltareas,
     get_tarea,
     reg_tarea,
     del_tarea,
+    up_tarea
 }

@@ -10,6 +10,7 @@ router.get('/', get_allTar);
 router.get('/:id', get_Tar);
 router.delete('/:id', del_Tar);
 router.post('/', reg_Tar);
+router.put('/:id', up_Tar);
 
 // Consultar todas las tareas
 async function get_allTar (req, res) {
@@ -46,7 +47,6 @@ async function del_Tar(req, res) {
 }
 
 // Registrar una tarea
-
 async function reg_Tar(req, res) {
     const { titulo, descripcion, estado, id_usuario } = req.body;
 
@@ -59,6 +59,28 @@ async function reg_Tar(req, res) {
     try {
         const resultado = await controlador.reg_Tar({ titulo, descripcion, estado, id_usuario });
         res.status(201).send('Tarea registrada');
+    } catch (err) {
+        if (err.message === 'Usuario no válido.') {
+            return res.status(400).send(err.message);
+        }
+        res.status(500).send('Error interno del servidor');
+    }
+}
+
+// Actualizar una tarea
+async function up_Tar(req, res) {
+    const { titulo, descripcion, estado, id_usuario } = req.body;
+    const id = req.params.id;
+
+    // Validar el estado
+    const estadosValidos = ['pendiente', 'en progreso', 'completado'];
+    if (estado && !estadosValidos.includes(estado)) {
+        return res.status(400).send('Estado no válido. Debe ser "pendiente", "en progreso" o "completado".');
+    }
+
+    try {
+        const resultado = await controlador.up_Tar(id, { titulo, descripcion, estado, id_usuario });
+        res.status(200).send('Tarea actualizada');
     } catch (err) {
         if (err.message === 'Usuario no válido.') {
             return res.status(400).send(err.message);
