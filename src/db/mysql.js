@@ -45,7 +45,12 @@ conMySQL();
 // Funciones de la tabla Usuarios
 
 function get_allusuarios(table){
-    return prueba_usuarios;
+    return new Promise((resolve, reject) =>{
+        conexion.query(`SELECT * FROM ${table}`, (error, result)=>{
+            if(error) return reject(error);
+            resolve(result);
+        })
+    });
 }
 
 function get_usuario(table, idUsu){

@@ -9,6 +9,6 @@ const app = express();
 app.set('port', config.app.port);
 
 // Rutas
-app.use('/api/usuarios', usuarios)
+app.use('/usuarios', usuarios)
 
 module.exports = app;
