@@ -16,15 +16,15 @@ let conexion;
 
 // Funcion para conectarse a la BD
 
-function conMySQL(){
+function conMySQL() {
     conexion = mysql.createConnection(dbconfig);
     // en caso de error al conectar
     conexion.connect((err) => {
-        if (err){
+        if (err) {
             console.log('[db err]', err);
             // volver a ejecutar la conexion
             setTimeout(conMySQL, 200);
-        }else{
+        } else {
             console.log('Conexion exitosa');
         }
     });
@@ -32,9 +32,9 @@ function conMySQL(){
     conexion.on('error', err => {
         console.log('[db err]', err);
         // en caso de perdidad de conexion, intentar volverse a conextar
-        if(err.code == 'PROTOCOL_CONNECTION_LOST'){
+        if (err.code == 'PROTOCOL_CONNECTION_LOST') {
             conMySQL();
-        }else{
+        } else {
             throw err;
         }
     });
@@ -44,58 +44,141 @@ conMySQL();
 
 // Funciones de la tabla Usuarios
 
-function get_allusuarios(table){
-    return new Promise((resolve, reject) =>{
-        conexion.query(`SELECT * FROM ${table}`, (error, result)=>{
-            if(error) return reject(error);
-            resolve(result);
+function get_allusuarios(table) {
+    return new Promise((resolve, reject) => {
+        conexion.query(`SELECT * FROM ${table}`, (error, result) => {
+            return error ? reject(error) : resolve(result);
         })
     });
 }
 
-function get_usuario(table, idUsu){
-    
+function get_usuario(table, id) {
+    return new Promise((resolve, reject) => {
+        conexion.query(`SELECT * FROM ${table} WHERE id=${id}`, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        })
+    });
 }
 
-function reg_usuario(table, dataUsu){
-    
+function reg_usuario(table, data) {
+    return new Promise((resolve, reject) => {
+        // Verificar si el correo ya está registrado
+        conexion.query(`SELECT * FROM ${table} WHERE correo = ?`, [data.correo], (error, result) => {
+            if (error) {
+                return reject(error);
+            }
+            if (result.length > 0) {
+                // En caso de que el correo ya esté registrado
+                return reject(new Error('El correo ya está registrado.'));
+            }
+
+            // Si el correo es único, se procede a insertar el nuevo usuario
+            conexion.query(`INSERT INTO ${table} (nombre, correo, contraseña) VALUES (?, ?, ?)`,
+                [data.nombre, data.correo, data.contraseña], (error, result) => {
+                    if (error) {
+                        return reject(error);
+                    }
+                    resolve(result);
+                });
+        });
+    });
 }
 
-function del_usuario(table, idUsu){
-    
+
+
+
+
+function del_usuario(table, id) {
+    return new Promise((resolve, reject) => {
+        conexion.query(`DELETE FROM ${table} WHERE id = ?`, [id], (error, result) => {
+            if (error) {
+                console.error('Error al eliminar:', error);
+                return reject(error);
+            }
+            console.log('Resultado de eliminación:', result);
+            return resolve(result);
+        });
+    });
 }
+
+function del_tar_usuario(table, id) {
+    return new Promise((resolve, reject) => {
+        conexion.query(`DELETE FROM ${table} WHERE id_usuario = ?`, [id], (error, result) => {
+            if (error) {
+                console.error('Error al eliminar tareas:', error);
+                return reject(error);
+            }
+            console.log('Tareas eliminadas:', result);
+            return resolve(result);
+        });
+    });
+}
+
 
 // Funciones de la tabla Tareas
 
-function get_alltareas(table){
-    return new Promise((resolve, reject) =>{
-        conexion.query(`SELECT * FROM ${table}`, (error, result)=>{
-            if(error) return reject(error);
-            resolve(result);
+function get_alltareas(table) {
+    return new Promise((resolve, reject) => {
+        conexion.query(`SELECT * FROM ${table}`, (error, result) => {
+            return error ? reject(error) : resolve(result);
         })
     });
 }
 
-function get_tarea(table, idTar){
-    
+function get_tarea(table, id) {
+    return new Promise((resolve, reject) => {
+        conexion.query(`SELECT * FROM ${table} WHERE id=${id}`, (error, result) => {
+            return error ? reject(error) : resolve(result);
+        })
+    });
 }
 
-function reg_tarea(table, dataTar){
-    
+function reg_tarea(table, data) {
+    return new Promise((resolve, reject) => {
+        // Verificar si el usuario existe
+        conexion.query(`SELECT * FROM ${table} WHERE id = ?`, [data.id_usuario], (error, result) => {
+            if (error) {
+                return reject(error);
+            }
+            if (result.length === 0) {
+                return reject(new Error('Usuario no válido.'));
+            }
+
+            // Si el usuario es válido, se procede a insertar la nueva tarea
+            conexion.query(`INSERT INTO ${table} (titulo, descripcion, estado, id_usuario) VALUES (?, ?, ?, ?)`,    
+            [data.titulo, data.descripcion, data.estado, data.id_usuario], (error, result) => {
+                if (error) {
+                    return reject(error);
+                }
+                resolve(result);
+            });
+        });
+    });
 }
 
-function del_tarea(table, idTar){
-    
+function del_tarea(table, id) {
+    return new Promise((resolve, reject) => {
+        conexion.query(`DELETE FROM ${table} WHERE id = ?`, [id], (error, result) => {
+            if (error) {
+                console.error('Error al eliminar tarea:', error);
+                return reject(error);
+            }
+            console.log('Resultado de eliminación:', result);
+            return resolve(result);
+        });
+    });
 }
+
 
 module.exports = {
     get_allusuarios,
     get_usuario,
     reg_usuario,
     del_usuario,
+    del_tar_usuario,
 
     get_alltareas,
     get_tarea,
     reg_tarea,
-    del_tarea
+    del_tarea,
 }

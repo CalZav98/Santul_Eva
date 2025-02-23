@@ -9,7 +9,7 @@ exports.success = function (req, res, msgOk = '', status = 200) {
 exports.error = function (req, res, msgErr = 'Error Interno', status = 500) {
     res.status(status).send({
         error: true,
-        status: statusCode,
+        status: status,
         body: msgErr
     });
 }

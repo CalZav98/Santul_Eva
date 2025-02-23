@@ -10,6 +10,7 @@ const app = express();
 
 // Middlewares
 app.use(morgan('dev'));
+app.use(express.json());
 
 // Configuracion 
 app.set('port', config.app.port);
