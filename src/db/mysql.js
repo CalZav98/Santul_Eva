@@ -10,6 +10,38 @@ const dbconfig = {
     database: config.mysql.database
 }
 
+// Variable de conexion
+
+let conexion;
+
+// Funcion para conectarse a la BD
+
+function conMySQL(){
+    conexion = mysql.createConnection(dbconfig);
+    // en caso de error al conectar
+    conexion.connect((err) => {
+        if (err){
+            console.log('[db err]', err);
+            // volver a ejecutar la conexion
+            setTimeout(conMySQL, 200);
+        }else{
+            console.log('Conexion exitosa');
+        }
+    });
+
+    conexion.on('error', err => {
+        console.log('[db err]', err);
+        // en caso de perdidad de conexion, intentar volverse a conextar
+        if(err.code == 'PROTOCOL_CONNECTION_LOST'){
+            conMySQL();
+        }else{
+            throw err;
+        }
+    });
+}
+
+conMySQL();
+
 // Funciones de la tabla Usuarios
 
 function get_allusuarios(table){
