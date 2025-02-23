@@ -68,7 +68,12 @@ function del_usuario(table, idUsu){
 // Funciones de la tabla Tareas
 
 function get_alltareas(table){
-    return prueba_tareas;
+    return new Promise((resolve, reject) =>{
+        conexion.query(`SELECT * FROM ${table}`, (error, result)=>{
+            if(error) return reject(error);
+            resolve(result);
+        })
+    });
 }
 
 function get_tarea(table, idTar){
